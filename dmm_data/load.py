@@ -3,6 +3,7 @@ import os
 import numpy as np
 from utils.misc import readPickle, savePickle
 
+
 def simulateLinearData(N, T, DIM):
     """ Synthetic data generated according to a first order linear Markov process """
     z    = np.random.randn(N, DIM)
