@@ -110,6 +110,7 @@ def run_model():
     # Loads/generate data
     dataset = load_lorenz()
     params = set_parameters(dataset)
+    print(params)
     print 'Dimensionality of the observations: ', dataset['dim_observations']
     print 'Data type of features:', dataset['data_type']
     for dtype in ['train','valid','test']:
