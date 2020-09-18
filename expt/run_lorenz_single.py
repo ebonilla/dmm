@@ -13,7 +13,7 @@ from sklearn import preprocessing
 N = 1024
 D = 3
 t0 = 0.0
-T = 1
+T = 40
 delta_t = 0.025
 
 # Parameters for learning
@@ -160,12 +160,16 @@ def sample_from_model():
     params['validate_only'] = True
     dmm_reloaded = DMM(params, paramFile=pfile, reloadFile=reloadFile)
 
+    # (mu, logcov): parameters of emission distributions
+    # z_vec = sample in latent space
     (mu, logcov), zvec = DMM_evaluate.sample(dmm_reloaded, T=40, nsamples=10)
 
     print("mu.shape=" + str(mu.shape))
     print("zvec.shape=" + str(mu.shape))
 
     visualize_data(mu, n_samples=10)
+    plt.title("Mean trajectories")
+
 
     fig, axlist_x = plt.subplots(3, 1, figsize=(8, 10))
     nsamples = 10
@@ -176,19 +180,18 @@ def sample_from_model():
          ax.plot(np.arange(T), np.transpose(z), '-*', label='Dim' + str(idx))
          ax.legend()
     ax.set_xlabel('Time')
-    plt.suptitle('3 dimensional samples')
+    plt.suptitle('3 dimensional samples of latent space')
     plt.show()
 
 
 def main():
-    #dataset = load_lorenz()
-    #visualize_data(dataset['train']['tensor'], n_samples=10)
+    dataset = load_lorenz()
+    visualize_data(dataset['train']['tensor'], n_samples=10)
 
     #run_model()
-    load_model_elbo()
-    sample_from_model()
+    #load_model_elbo()
+    #sample_from_model()
 
 
 if __name__ == "__main__":
     main()
-

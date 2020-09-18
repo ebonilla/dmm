@@ -8,7 +8,8 @@ Functions for evaluating DMMs
 """
 def infer(dmm, dataset):
     """ Posterior Inference using recognition network 
-    Returns: z,mu,logcov (each a 3D tensor) 
+    Returns: z,mu,logcov (each a 3D tensor)
+    z is a single sample from the posterior
     """
     dmm.resetDataset(dataset, quiet=True)
     return dmm.posterior_inference(idx=np.arange(dataset['tensor'].shape[0]))
