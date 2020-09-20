@@ -46,11 +46,13 @@ def load_lorenz_coupled():
     T = 100.0
 
     curdir = os.path.dirname(os.path.realpath(__file__))
-    fname = curdir+'/lorenz_coupled.pkl'
+    fname = curdir + '/lorenz_coupled.pkl'
 
     if os.path.exists(fname):
         print 'Reloading dataset from ' + fname
         return readPickle(fname)[0]
+
+    print(fname + " not found. Generating data from scratch.")
 
     state = generate_data(n=n, t0=t0, T=T, delta_t=delta_t)
 
