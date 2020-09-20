@@ -112,12 +112,41 @@ def visualize_data(state, n_samples):
     # plt.show()
 
 
+def set_extra_parameters(params, dataset):
+    params['data_type'] = dataset['data_type']
+    params['dim_observations'] = dataset['dim_observations']
+    os.system('mkdir -p ' + params['savedir'])
+    return params
+
+
+def run_model(dataset, params):
+    set_extra_parameters(params=params, dataset=dataset)
+    for key, value in params.items():
+        print(key, value)
+
+    # Specify the file where `params` corresponding for this choice of model and data will be saved
+    pfile= params['savedir']+'/'+params['unique_id']+'-config.pkl'
+
+    print 'Checkpoint prefix: ', pfile
+    dmm = DMM(params, paramFile=pfile)
+
+    # savef specifies the prefix for the checkpoints - we'll use the same save directory as before
+    savef = os.path.join(params['savedir'],params['unique_id'])
+    savedata = DMM_learn.learn(dmm, dataset['train'], epoch_start=0,
+                               epoch_end=params['epochs'],
+                               batch_size=params['batch_size'],
+                               savefreq=params['savefreq'],
+                               savefile=savef,
+                               dataset_eval=dataset['valid'],
+                               shuffle=True)
+
+
 def main():
     dataset = load_lorenz_coupled()
-    visualize_data(dataset['train']['tensor'], n_samples=10)
-
+    # visualize_data(dataset['train']['tensor'], n_samples=10)
+    run_model(dataset=dataset, params=params)
 
 if __name__ == "__main__":
-    # main()
-    print(params)
+    main()
+
 
