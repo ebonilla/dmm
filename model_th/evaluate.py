@@ -14,6 +14,7 @@ def infer(dmm, dataset):
     dmm.resetDataset(dataset, quiet=True)
     return dmm.posterior_inference(idx=np.arange(dataset['tensor'].shape[0]))
 
+
 def reconstruct(dmm, dataset):
     dmm.resetDataset(dataset, quiet=True)
     z, _, _ = dmm.posterior_inference(idx=np.arange(dataset['tensor'].shape[0]))

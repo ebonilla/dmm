@@ -100,18 +100,18 @@ def visualize_data(state, n_samples):
     plt.show()
 
     # x trajectories
-    # T = 40
-    # t = np.arange(start=0, stop=T, step=delta_t)
-    # L_t = t.size
-    #
-    # plt.plot(t, x_e[:L_t])
-    # plt.show()
-    #
-    # plt.plot(t, x_t[:L_t])
-    # plt.show()
-    #
-    # plt.plot(t, X[:L_t])
-    # plt.show()
+    T = 100
+    t = np.arange(start=0, stop=T, step=0.025)
+    L_t = t.size
+
+    plt.plot(t, state[1, :L_t, 0]) # xe
+    plt.show()
+
+    plt.plot(t, state[1, :L_t, 3]) # xt
+    plt.show()
+
+    plt.plot(t, state[1, :L_t, 6])  # X
+    plt.show()
 
 
 def set_extra_parameters(params, dataset):
@@ -143,10 +143,93 @@ def run_model(dataset, params):
                                shuffle=True)
 
 
+def load_model_elbo(epoch):
+    fname = './chkpt/lorenz_coupled/DMM_lr-0_0008-dh-40-ds-9-nl-relu-bs-100-ep-10000-rs-80-rd-0_1-infm-R-tl-2-el-2-ar-2_0-use_p-approx-rc-lstm-uid-EP' + str(epoch) + '-stats.h5'
+
+    # Lets look at the statistics saved at epoch 40
+    stats = loadHDF5(fname)
+    print [(k, stats[k].shape) for k in stats.keys()]
+    plt.figure(figsize=(8, 10))
+    plt.plot(stats['train_bound'][:, 0], stats['train_bound'][:, 1], '-o', color='g', label='Train')
+    plt.plot(stats['valid_bound'][:, 0], stats['valid_bound'][:, 1], '-*', color='b', label='Validate')
+    plt.legend()
+    plt.xlabel('Epochs')
+    plt.ylabel('Upper Bound on $-\log p(x)$')
+    plt.show()
+
+def reload_model(epoch):
+    DIR = './chkpt/lorenz_coupled/'
+    pfile = DIR + 'DMM_lr-0_0008-dh-40-ds-9-nl-relu-bs-100-ep-10000-rs-80-rd-0_1-infm-R-tl-2-el-2-ar-2_0-use_p-approx-rc-lstm-uid-config.pkl'
+
+    # The hyperparameters are saved in a pickle file - lets load them here
+    hparam = readPickle(pfile, quiet=True)[0]
+    reloadFile = DIR + 'DMM_lr-0_0008-dh-40-ds-9-nl-relu-bs-100-ep-10000-rs-80-rd-0_1-infm-R-tl-2-el-2-ar-2_0-use_p-approx-rc-lstm-uid-EP' + str(epoch) + '-params.npz'
+
+    # Don't load the training functions for the model since its time consuming
+    hparam['validate_only'] = True
+    dmm = DMM(hparam, paramFile=pfile, reloadFile=reloadFile)
+    return dmm
+
+
+def visualize_posterior(z, mu, logcov):
+    T = 100
+    t = np.arange(start=0, stop=T, step=0.025)
+    L_t = t.size
+
+    shufidx = np.random.permutation(z.shape[0])
+
+    std = np.exp(0.5 * logcov)
+
+    for sample in range(10):
+
+        #plt.plot(t, z[0, :L_t, 0])  # xe
+        #plt.show()
+
+        #plt.plot(t, z[0, :L_t, 3])  # xt
+        #plt.show()
+
+        #plt.plot(t, z[0, :L_t, 6])  # X
+        #plt.show()
+        mu_ = mu[sample, :L_t, 0]
+        std_ = std[sample, :L_t, 0]
+        ax1 = plt.subplot(311)
+
+        plt.plot(t, mu_)
+        plt.fill_between(t, (mu_ - std_), (mu_ + std_), color='b', alpha=.1)
+        #plt.show()
+
+        mu_ = mu[sample, :L_t, 3]
+        std_ = std[sample, :L_t, 3]
+        ax2 = plt.subplot(312)
+        plt.plot(t, mu_)
+        plt.fill_between(t, (mu_ - std_), (mu_ + std_), color='b', alpha=.1)
+        #plt.show()
+
+        mu_ = mu[sample, :L_t, 6]
+        std_ = std[sample, :L_t, 6]
+        ax3 = plt.subplot(313)
+        plt.plot(t, mu_)
+        plt.fill_between(t, (mu_ - std_), (mu_ + std_), color='b', alpha=.1)
+        plt.show()
+
+
 def main():
+
     dataset = load_lorenz_coupled()
     # visualize_data(dataset['train']['tensor'], n_samples=10)
-    run_model(dataset=dataset, params=params)
+
+    # run_model(dataset=dataset, params=params)
+
+    # load_model_elbo(epoch=2280)
+
+    dmm = reload_model(epoch=2700)
+
+    z, mu, logcov = DMM_evaluate.infer(dmm, dataset['train'])
+
+    visualize_posterior(z, mu, logcov)
+
+    print(logcov)
+
 
 if __name__ == "__main__":
     main()
